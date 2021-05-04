@@ -1,0 +1,2 @@
+lib/utilities/appid.dart filter=git-crypt diff=git-crypt
+.giattributes !filter !diff
