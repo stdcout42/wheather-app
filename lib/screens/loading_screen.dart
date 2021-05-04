@@ -1,9 +1,8 @@
-import 'dart:convert';
-
+import 'package:clima/screens/location_screen.dart';
+import 'package:clima/services/networking.dart';
 import 'package:clima/utilities/appid.dart';
 import 'package:flutter/material.dart';
 import 'package:clima/services/location.dart';
-import 'package:http/http.dart' as http;
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -11,10 +10,13 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
+  double latitude;
+  double longitude;
+
   @override
   void initState() {
     super.initState();
-    getLocation();
+    getLocationData();
   }
 
   @override
@@ -25,7 +27,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         children: [
           TextButton(
               onPressed: () {
-                getLocation();
+                getLocationData();
               },
               child: Text("Refresh"))
         ],
@@ -33,20 +35,22 @@ class _LoadingScreenState extends State<LoadingScreen> {
     );
   }
 
-  void getLocation() async {
+  void getLocationData() async {
     Location location = Location();
     await location.getCurrentLocation();
-    getData(latitude: location.latitude, longitude: location.longitude);
-  }
+    latitude = location.latitude;
+    longitude = location.longitude;
 
-  void getData({double longitude, double latitude}) async {
-    http.Response response = await http.get(Uri.parse(
-        'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$appID'));
-    var decodedData = jsonDecode(response.body);
-    double temp = decodedData['main']['temp'];
-    int condition = decodedData['weather'][0]['id'];
-    String cityName = decodedData['name'];
-
-    print('Condition: $cityName');
+    NetworkHelper networkHelper = NetworkHelper(
+        'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$appID');
+    var weatherData = await networkHelper.getData();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return LocationScreen();
+        },
+      ),
+    );
   }
 }
